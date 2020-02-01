@@ -105,7 +105,7 @@ pub fn update_registry_index(registry: &Url) -> Result<()> {
     };
     let mut output = StandardStream::stdout(colorchoice);
 
-    if !registry_path.as_path().exists() {
+    let repo = if !registry_path.as_path().exists() {
         output.set_color(ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true))?;
         write!(output, "{:>12}", "Initializing")?;
         output.reset()?;
@@ -113,11 +113,11 @@ pub fn update_registry_index(registry: &Url) -> Result<()> {
 
         let mut opts = git2::RepositoryInitOptions::new();
         opts.bare(true);
-        git2::Repository::init_opts(&registry_path, &opts)?;
-        return Ok(());
-    }
+        git2::Repository::init_opts(&registry_path, &opts)?
+    } else {
+        git2::Repository::open(&registry_path)?
+    };
 
-    let repo = git2::Repository::open(&registry_path)?;
     output.set_color(ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true))?;
     write!(output, "{:>12}", "Updating")?;
     output.reset()?;
